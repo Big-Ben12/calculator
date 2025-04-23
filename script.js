@@ -1,98 +1,129 @@
-// Add Function 
-function add(num1, num2) {
-    return num1 + num2;
+// Operator functions
+function add(a, b) {
+    return a + b;
+}
+function subtract(a, b) {
+    return a - b;
+}
+function multiply(a, b) {
+    return a * b;
+}
+function divide(a, b) {
+    return b === 0 ? "Error: Division by zero" : a / b;
+}
+function remainder(a, b) {
+    return a % b;
 }
 
-// Subtract Function
-function subtract(num1, num2) {
-    return num1 - num2;
-}
-
-// Multiply Function
-function multiply(num1, num2) {
-    return num1 * num2;
-}   
-
-// Divide Function
-function divide(num1, num2) {
-    return num1 / num2;
-}
-
-//Operate Function
-function operate(operator, num1, num2) {
-    switch(operator) {
-        case '+':
-            return add(num1, num2);
-        case '-':
-            return subtract(num1, num2);
-        case '*':
-            return multiply(num1, num2);
-        case '/':
-            return divide(num1, num2);
+// Operate function
+function operate(operator, a, b) {
+    switch (operator) {
+        case '+': return add(a, b);
+        case '-': return subtract(a, b);
+        case '*': return multiply(a, b);
+        case '/': return divide(a, b);
+        case '%': return remainder(a, b);
+        default: throw new Error(`Unsupported operator: ${operator}`);
     }
 }
 
-
-
-
-
-const calculationDisplay = document.querySelector('.calculationDisplay');
-
-
-
-// Variable to store the current display value
+// Variables
 let displayValue = "";
+let firstOperand = "";
+let secondOperand = "";
+let currentOperator = null;
+let shouldResetScreen = false;
 
+// DOM elements
+const display = document.querySelector('.display');
+const calculationDisplay = document.querySelector('.calculationDisplay');
+const digitButtons = document.querySelectorAll('.digit');
+const operatorButtons = document.querySelectorAll('.operator');
+const clearButton = document.querySelector('.clear');
+const equalsButton = document.querySelector('.equals');
 
-// Function to update display
+// Update display
 function updateDisplay() {
-    const display = document.querySelector('.display');
-    display.value = displayValue;
+    display.value = displayValue || "0";
 }
 
-// Function to display digit when button is clicked
+// Handle digit click
 function displayClickedDigit(digit) {
+    if (shouldResetScreen) {
+        displayValue = "";
+        shouldResetScreen = false;
+    }
     displayValue += digit;
     updateDisplay();
 }
 
-// Get clicked value 
-const digitButtons = document.querySelectorAll('.digit');
-    digitButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        const digitButtonValue = button.textContent;
-        // console.log(digitButtonValue);
-        // const display = document.querySelector('.display');
-        // display.value = digitButtonValue;
-        displayClickedDigit(digitButtonValue);
-        });
-    });
+// Handle operator click
+function handleOperator(operator) {
+    if (displayValue === "") {
+        alert("Please enter a number first.");
+        return;
+    }
 
-// Get clicked operator 
-const operatorButton = document.querySelectorAll('.operator');
-    operatorButton.forEach(button => {
-    button.addEventListener('click', () => {
-        const operatorButtonValue = button.textContent;
-        // displayClickedDigit(operatorButtonValue);
-        calculationDisplay.textContent = `${displayValue} ${operatorButtonValue}`;
-        })
-    })
+    if (firstOperand === "") {
+        firstOperand = displayValue;
+    } else if (currentOperator) {
+        secondOperand = displayValue;
+        const result = operate(currentOperator, parseFloat(firstOperand), parseFloat(secondOperand));
+        displayValue = result.toString();
+        firstOperand = displayValue;
+        updateDisplay();
+    }
 
-// Clear 
-const clearButton = document.querySelector('.clear');
-clearButton.addEventListener('click', () => {
-    displayValue = ""; // Reset display value
-    updateDisplay();   // Update the display
+    currentOperator = operator;
+    calculationDisplay.textContent = `${firstOperand} ${operator}`;
+    shouldResetScreen = true;
+}
+
+// Handle equals
+function handleEquals() {
+    if (currentOperator === null || displayValue === "") return;
+
+    secondOperand = displayValue;
+    const result = operate(currentOperator, parseFloat(firstOperand), parseFloat(secondOperand));
+
+    displayValue = result.toString();
+    updateDisplay();
+
+    calculationDisplay.textContent = `${firstOperand} ${currentOperator} ${secondOperand} =`;
+    firstOperand = "";
+    secondOperand = "";
+    currentOperator = null;
+    shouldResetScreen = true;
+}
+
+// Clear everything
+function clearAll() {
+    displayValue = "";
+    firstOperand = "";
+    secondOperand = "";
+    currentOperator = null;
     calculationDisplay.textContent = "";
+    updateDisplay();
+}
+
+// Event Listeners
+digitButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        displayClickedDigit(button.textContent);
+        calculationDisplay.textContent += button.textContent;
+    });
 });
 
+operatorButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        handleOperator(button.textContent === "x" ? "*" : button.textContent);
+    });
+});
 
-// // Add event listeners to digit buttons
-// const digitButtons = document.querySelectorAll('.digit'); // Assuming digit buttons have a class 'digit'
-// digitButtons.forEach(button => {
-//     button.addEventListener('click', () => {
-//         displayClickedDigit(button.textContent); // Pass the button's text content (digit) to the handler
-        
-//     });
-// });
+clearButton.addEventListener('click', clearAll);
+equalsButton.addEventListener('click', handleEquals);
+
+// Initial display update
+updateDisplay();
+
 
